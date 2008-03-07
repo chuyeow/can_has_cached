@@ -1,0 +1,3 @@
+== 0.42.0 "Because the answer to Life, the Universe, and Everything is 42" 2008-03-07
+
+* Initial release. Still pretty crappy
