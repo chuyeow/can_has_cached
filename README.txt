@@ -2,12 +2,15 @@
 
 == Synopsis
 
-Like cache_fu, but uses the faster and more awesome memcached gem by Evan Weaver (http://blog.evanweaver.com/files/doc/fauna/memcached/files/README.html) and with an emphasis on as little magic as possible. Oh and there's no ActiveRecord integration too. I guess it's not really like cache_fu.
+Like cache_fu, but uses the faster and more awesome memcached gem by Evan
+Weaver (http://blog.evanweaver.com/files/doc/fauna/memcached/files/README.html)
+and with an emphasis on as little magic as possible. Oh and there's no
+ActiveRecord integration too. I guess it's not really like cache_fu.
 
 == Dependencies
 
-* memcached Rubygem - see http://blog.evanweaver.com/files/doc/fauna/memcached/files/README.html
-* libmemcached -http://tangent.org/552/libmemcached.html
+* memcached rubygem - http://blog.evanweaver.com/files/doc/fauna/memcached/files/README.html
+* libmemcached - http://tangent.org/552/libmemcached.html
 * RSpec (optional, required for running specs)
 
 == License:
