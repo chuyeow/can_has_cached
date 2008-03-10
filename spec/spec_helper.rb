@@ -5,3 +5,5 @@ rescue LoadError
   gem 'rspec'
   require 'spec'
 end
+
+require File.dirname(__FILE__) + "/../lib/can_has_cached"
