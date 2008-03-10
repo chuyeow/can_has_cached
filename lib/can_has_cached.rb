@@ -1,10 +1,22 @@
 $:.unshift File.dirname(__FILE__)
 
+require 'rubygems'
 require 'memcached'
+require 'set'
 
-# TODO Write some specs you pussy.
-# TODO Remove dependency on RAILS_ROOT and RAILS_ENV.
 module CanHasCached
+  # Stolen from ActiveSupport to support Hash#slice
+  Hash.class_eval do
+    # Returns a new hash with only the given keys.
+    def slice(*keys)
+      allowed = Set.new(respond_to?(:convert_key) ? keys.map { |key| convert_key(key) } : keys)
+      reject { |key,| !allowed.include?(key) }
+    end
+    
+    def slice!(*keys)
+      replace(slice(*keys))
+    end
+  end
 
   def self.included(base)
     base.extend(ClassMethods)
@@ -12,35 +24,41 @@ module CanHasCached
   end
 
   module ClassMethods
-    @@ttl = nil
+    @ttl = nil
+    @cache_config = nil
 
-    def allowed_options
-      [:namespace, :hash, :distribution, :support_cas, :tcp_nodelay, :no_block, :buffer_request, :show_not_found_backtraces]
+    def cache
+      raise ArgumentError, "cache_config must be set before you can use CanHasCached" if cache_config.nil?
+      @cache ||= Memcached.new(cache_config[:servers], cache_config.slice(*allowed_options))
     end
 
     def cache_config
-      @@cache_config ||= YAML.load(ERB.new(IO.read(File.join(RAILS_ROOT, 'config', 'memcached.yml'))).result)[RAILS_ENV]
+      @cache_config
     end
 
-    def cache
-      @@cache ||= Memcached.new(cache_config[:servers], cache_config.slice(*allowed_options))
+    def cache_config=(config)
+      raise ArgumentError, "cache_config for CanHasCached must be a Hash" unless config.is_a?(Hash)
+      # Set the config now
+      @cache_config = config
     end
 
     def ttl
-      @@ttl
+      @ttl
     end
 
     def ttl=(new_ttl)
-      @@ttl = new_ttl
+      raise ArgumentError, "ttl for CanHasCached must be a Fixnum" unless new_ttl.is_a?(Fixnum)
+      @ttl = new_ttl
     end
 
     # Returns the cache key to use for a given ID. This generally includes the class name and cache version, if any.
     def cache_key(cache_id)
-      [self.name, cache_config[:version], cache_id].compact.join(':').gsub(' ', '_')
+      version = cache_config[:version] unless cache_config.nil?
+      [self.name, version, cache_id].compact.join(':').gsub(' ', '_')
     end
 
     # Sets value into cache, with the given optional TTL (in seconds). If <code>ttl</code> is not given, it's taken from
-    # the @@ttl class variable, failing which, from cache_config[:ttl].
+    # the @ttl class variable, failing which, from cache_config[:ttl].
     def set_cache(cache_id, value, ttl = nil)
       cache.set(cache_key(cache_id), value, ttl || self.ttl || cache_config[:ttl] || 0)
     end
@@ -66,15 +84,15 @@ module CanHasCached
         if error.to_s[/undefined class|referred/] && !lazy_load[error.to_s.split.last.constantize] then retry
         else raise error end
       end
+      
+      def allowed_options
+        [:namespace, :hash, :distribution, :support_cas, :tcp_nodelay, :no_block, :buffer_request, :show_not_found_backtraces]
+      end
   end
 
   module InstanceMethods
     def cache_config
       self.class.cache_config
-    end
-
-    def cache
-      self.class.cache
     end
 
     def set_cache(cache_id, value = self, ttl = nil)
@@ -84,5 +102,10 @@ module CanHasCached
     def get_cache(cache_id)
       self.class.get_cache(cache_id(key), options, &block)
     end
+
+    def cache
+      self.class.cache
+    end
+
   end
 end
