@@ -33,10 +33,10 @@ describe "CanHasCached #set_cache method, with @cache_config set correctly" do
     Object.send(:remove_const, :Person)
   end
   
-  it "should call the set method on the Memcached object" do
+  it "should call the set method on the Memcached object and return the object it's trying to cache" do
     Person.should_receive(:cache).exactly(1).times.and_return(@mock_cache)
-    @mock_cache.should_receive(:set).exactly(1).times.and_return(0)
+    @mock_cache.should_receive(:set).exactly(1)
     
-    Person.set_cache("123", 123).should == 0
+    Person.set_cache("123", 123).should == 123
   end
 end

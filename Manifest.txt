@@ -1,7 +1,6 @@
 History.txt
 License.txt
 Manifest.txt
-README
 README.txt
 Rakefile
 config/hoe.rb
@@ -13,7 +12,14 @@ script/destroy
 script/generate
 script/txt2html
 setup.rb
-spec/can_has_cached_spec.rb
+spec/can_has_cached/cache_config_spec.rb
+spec/can_has_cached/cache_key_spec.rb
+spec/can_has_cached/cache_spec.rb
+spec/can_has_cached/extend_spec.rb
+spec/can_has_cached/get_cache_spec.rb
+spec/can_has_cached/include_spec.rb
+spec/can_has_cached/set_cache_spec.rb
+spec/can_has_cached/ttl_spec.rb
 spec/spec.opts
 spec/spec_helper.rb
 tasks/deployment.rake

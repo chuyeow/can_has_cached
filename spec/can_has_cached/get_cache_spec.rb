@@ -1,5 +1,37 @@
 require File.dirname(__FILE__) + '/../spec_helper.rb'
 
+describe CanHasCached do
+  before(:each) do
+    class Person
+      include CanHasCached
+
+      def expensive_computation
+        42
+      end
+    end
+
+    @mock_cache = mock(Memcached)
+    @person = Person.new
+
+    Person.stub!(:cache).and_return(@mock_cache)
+    Person.cache_config = {:servers => "localhost:11211"}
+  end
+
+  after(:each) do
+    Object.send(:remove_const, :Person)
+  end
+
+  describe "#get_cache with a block" do
+    it "should return the value of the block if the cache ID given does not exist in memcached" do
+      Person.should_receive(:cache_key).with('my_id').and_return('Person::my_id')
+      @mock_cache.should_receive(:get).with('Person::my_id').and_raise(Memcached::NotFound)
+      Person.should_receive(:set_cache).with('my_id', 42).and_return(42)
+
+      @person.get_cache('my_id') { @person.expensive_computation }.should == 42
+    end
+  end
+end
+
 describe "CanHasCached #get_cache method, with @cache_config not set" do
   before(:each) do
     class Person
@@ -21,7 +53,7 @@ describe "CanHasCached #get_cache method, with @cache_config set and Memcached#g
     class Person
       include CanHasCached
       attr_accessor :name
-      
+
       def initialize(options = {})
         self.name = options[:name]
       end

@@ -61,9 +61,19 @@ module CanHasCached
     # the @ttl class variable, failing which, from cache_config[:ttl].
     def set_cache(cache_id, value, ttl = nil)
       cache.set(cache_key(cache_id), value, ttl || self.ttl || cache_config[:ttl] || 0)
+      value
     end
 
     # Gets cached value from cache, auto-magically loading any missing constants if needed for unmarshalling.
+    # Accepts an optional block, whose return value will be cached if the key does not already exist.
+    #
+    # == Examples
+    #   # Returns the cached value with ID of 'foo' if it exists in the cache.
+    #   get_cache('foo')
+    #
+    #   # Calls some_expensive_method if the cached value with ID of 'foo' if it doesn't already exist in the cache.
+    #   get_cache('foo') { some_expensive_method }
+    #
     # Warning: this method rescues from Memcached::NotFound and returns nil if the key does not exist!
     def get_cache(cache_id)
       begin
@@ -71,7 +81,7 @@ module CanHasCached
           cache.get(cache_key(cache_id))
         end
       rescue Memcached::NotFound
-        nil
+        block_given? ? set_cache(cache_id, yield) : nil
       end
     end
 
@@ -99,8 +109,8 @@ module CanHasCached
       self.class.set_cache(cache_id, value, ttl)
     end
 
-    def get_cache(cache_id)
-      self.class.get_cache(cache_id(key), options, &block)
+    def get_cache(cache_id, &block)
+      self.class.get_cache(cache_id, &block)
     end
 
     def cache
