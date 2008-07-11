@@ -1,0 +1,38 @@
+defaults:
+  :namespace: app
+  :c_threshold: 10000
+  :compression: true
+  :debug: true
+  :readonly: false
+  :urlencode: false
+  :sessions: false
+  :fragments: false
+  :benchmarking: true
+  :raise_errors: true
+  :sessions: false
+  :fragments: false
+  :version: 1 # Change this if you want to "expire" the cache
+
+development:
+  :namespace: app_development
+  :servers: 127.0.0.1:11211
+  :hash: :default
+  :distribution: :consistent
+  :no_block: false
+
+production:
+  :namespace: app_production
+  :debug: false
+  :benchmarking: false
+  :servers:
+    - 127.0.0.1:11211
+    - 192.168.0.69:11211
+  :version: 1
+  :memory: 64
+  :hash: :default
+  :distribution: :consistent
+  :no_block: false
+
+# turn off caching
+test:
+  :disabled: true
